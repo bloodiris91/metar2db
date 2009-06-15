@@ -1,0 +1,7 @@
+#!/usr/bin/perl -wtT
+
+use strict;
+use warnings;
+
+use DBI;
+use Geo::METAR;
