@@ -1,7 +1,48 @@
-#!/usr/bin/perl -wtT
+#!/usr/bin/perl -tT
 
 use strict;
 use warnings;
 
 use DBI;
+use LWP::Simple;
 use Geo::METAR;
+
+# Database configuration
+my $config_db_type  = "mysql";     # Database type, default: mysql
+my $config_db_host  = "localhost"; # Database host, default: localhost
+my $config_db_port  = "3306";      # Database port, default: 3306
+my $config_db_db    = "flightdb";  # Database database name, default: flightdb
+my $config_db_user  = "root";      # Database user, default: root
+my $config_db_pass  = "";          # Database password, default: empty string
+my $config_db_table = "metar";     # Database table, default: metar
+
+# Which stations to get
+my @stations = ( "EFTP" );
+
+# The base of the URL, 4 letter station identifier and ".TXT" will be added automagically.
+my $baseUrl = "http://weather.noaa.gov/pub/data/observations/metar/stations/";
+
+# Try to open database connection. Die if fails.
+my $dbh = DBI->connect( "DBI:$config_db_type:$config_db_db:$config_db_host:$config_db_port", $config_db_user, $config_db_pass ) or die( "ERROR: Can't connect to database : $!" )
+;
+
+foreach my $station ( @stations )
+{
+    my $content = get $baseUrl . $station . ".TXT";
+    
+    my $metar = new Geo::METAR;
+    $metar->metar( $content );
+    
+    # Examples how to access the METAR data:
+    # print $metar->dump;
+    # print "Temperature: " . $metar->{"TEMP_C"} . "\n";
+    
+    # TODO: Fixme
+    my $timestamp = "2009-06-15 17:00:00";
+    
+    # Construct the SQL insertion
+    my $query = "INSERT INTO " . $config_db_table . " ( station, timestamp, temperature ) VALUES ( " . $dbh->quote($station) . ", " . $dbh->quote($timestamp) . ", " . $dbh->quote($metar->{"TEMP_C"}) . " );";
+    
+    # Execute the SQL statement
+    $dbh->prepare($query)->execute;
+}
