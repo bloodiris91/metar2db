@@ -17,7 +17,36 @@ my $config_db_pass  = "";          # Database password, default: empty string
 my $config_db_table = "metar";     # Database table, default: metar
 
 # Which stations to get
-my @stations = ( "EFTP" );
+my @stations = (
+    "EFET",
+    "EFHA",
+    "EFHF",
+    "EFHK",
+    "EFIV",
+    "EFJO",
+    "EFJY",
+    "EFKI",
+    "EFKA",
+    "EFKE",
+    "EFKT",
+    "EFKK",
+    "EFKU",
+    "EFKS",
+    "EFLP",
+    "EFMA",
+    "EFMI",
+    "EFOU",
+    "EFPO",
+    "EFRO",
+    "EFSA",
+    "EFSI",
+    "EFSO",
+    "EFTP",
+    "EFTU",
+    "EFUT",
+    "EFVA",
+    "EFVR"
+);
 
 # The base of the URL, 4 letter station identifier and ".TXT" will be added automagically.
 my $baseUrl = "http://weather.noaa.gov/pub/data/observations/metar/stations/";
@@ -29,6 +58,11 @@ my $dbh = DBI->connect( "DBI:$config_db_type:$config_db_db:$config_db_host:$conf
 foreach my $station ( @stations )
 {
     my $content = get $baseUrl . $station . ".TXT";
+    if ( not defined $content )
+    {
+	print "Error while retrieving " . $baseUrl . $station . ".TXT\n";
+	next;
+    }
     
     my $metar = new Geo::METAR;
     $metar->metar( $content );
@@ -37,11 +71,13 @@ foreach my $station ( @stations )
     # print $metar->dump;
     # print "Temperature: " . $metar->{"TEMP_C"} . "\n";
     
-    # TODO: Fixme
-    my $timestamp = "2009-06-15 17:00:00";
+    # Generate a timestamp from METAR
+    my $timestamp = substr($metar->{"METAR"},0,4) . '-' . substr($metar->{"METAR"},2,2) . '-' . substr($metar->{"date_time"},0,2) . ' ' . substr($metar->{"date_time"},2,2) . ':' . substr($metar->{"date_time"},4,2);
     
     # Construct the SQL insertion
-    my $query = "INSERT INTO " . $config_db_table . " ( station, timestamp, temperature ) VALUES ( " . $dbh->quote($station) . ", " . $dbh->quote($timestamp) . ", " . $dbh->quote($metar->{"TEMP_C"}) . " );";
+    my $query = "INSERT INTO " . $config_db_table . " ( station, timestamp, temperature, dewpoint, visibility, wind_kts, wind_dir ) VALUES ( " . $dbh->quote($station) . ", " . $dbh->quote($timestamp) . ", " . $dbh->quote($metar->{"TEMP_C"}) . ", " . $dbh->quote($metar->{"DEW_C"}) . ", " . $dbh->quote($metar->{"visibility"}) . ", " . $dbh->quote($metar->{"WIND_KTS"}) . ", " . $dbh->quote($metar->{"WIND_DIR_DEG"}) . ");";
+    
+    print $query . "\n";
     
     # Execute the SQL statement
     $dbh->prepare($query)->execute;
