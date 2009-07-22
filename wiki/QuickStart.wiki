@@ -1,0 +1,31 @@
+#summary Quick start guide.
+#labels Featured
+
+= Quick start guide =
+
+This is a quick and dirty guide for helping using metar2db.
+
+== Prerequisites ==
+
+  * Perl
+  * DBI
+  * Geo::METAR
+  * Database supported by DBI
+
+Make sure Perl is installed, and it has DBI and Geo::METAR libraries. You can test the availability manually:
+
+{{{
+$ perl
+use DBI;
+use Geo::METAR;
+}}}
+
+If the above doesn't give any errors they should be fine.
+
+== Configuration ==
+
+Extract the metar2db somewhere and edit the script. All configuration is made by changing variables in the beginning of the script. They should be pretty self explanatory.
+
+== Usage ==
+
+Use any means available to execute the script every once in a while. Most probably you should use crontab in Unix environments and scheduled tasks in Windows. Recommended frequency is 30 minutes. Most METARs update every 30 minutes, but even if they don't update that frequent the script doesn't put duplicate data to the database.
