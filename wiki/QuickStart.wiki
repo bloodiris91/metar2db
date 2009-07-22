@@ -12,15 +12,20 @@ This is a quick and dirty guide for helping using metar2db.
   * Geo::METAR
   * Database supported by DBI
 
-Make sure Perl is installed, and it has DBI and Geo::METAR libraries. You can test the availability manually:
+Make sure Perl is installed, and it has DBI and Geo::METAR libraries. You can test the availability manually with the following command:
+
+`$ perl -e 'use DBI; use Geo::METAR;'`
+
+If the above doesn't give any errors they should be fine. In case you see something like this:
+
+`Can't locate Geo/METAR.pm in @INC`
+
+You need to install the library in question. Best practice would be to use your operating system's package manager, but in case they don't provide the libraries you need to use Perl's CPAN. You might try the following:
 
 {{{
-$ perl
-use DBI;
-use Geo::METAR;
+$ cpan
+install Geo::METAR
 }}}
-
-If the above doesn't give any errors they should be fine.
 
 == Configuration ==
 
